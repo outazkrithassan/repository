@@ -1,0 +1,4 @@
+SELECT max(date_vol) , min(date_vol) FROM `vols` 
+left join companies on companies.id = vols.companie_id
+left join avions on avions.id = vols.avion_id 
+WHERE companies.nom = "FR" and vols.numero = 3274 and avions.disponibilite like '%1%' and vols.heure_depart like "0845" ;

@@ -1,0 +1,564 @@
+@import url('https://fonts.googleapis.com/css2?family=Young+Serif&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+* {
+    scroll-behavior: smooth;
+}
+
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    /* Track color */
+}
+
+::-webkit-scrollbar-thumb {
+    background: #afafaf;
+    /* Thumb color */
+    border-radius: 6px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+}
+
+.container {
+    padding: 0 20px;
+}
+
+form label {
+    display: block;
+    font-size: 14px;
+}
+
+form .group {
+    margin: 5px 0;
+}
+
+form textarea,
+form input {
+    width: 100%;
+    font-family: inherit;
+    margin: 10px 0;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #DDD;
+}
+
+form textarea {
+    height: 100px;
+    resize: none;
+}
+
+.form-delete {
+    height: fit-content;
+    margin: 0;
+}
+
+form input[type='file'] {
+    padding: 5px;
+}
+
+.btn-submit {
+    margin-top: 20px;
+    padding: 10px 20px;
+    border: none;
+    background: #222;
+    color: #FFF;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.take-1 {
+    flex: 1;
+}
+
+.take-2 {
+    flex: 2;
+}
+
+.take-3 {
+    flex: 3;
+}
+
+.take-4 {
+    flex: 4;
+}
+
+.take-5 {
+    flex: 5;
+}
+
+.take-6 {
+    flex: 6;
+}
+
+.take-7 {
+    flex: 7;
+}
+
+.take-8 {
+    flex: 8;
+}
+
+.content-wrapper {
+    margin-block: 25px;
+    font-family: 'Inter', sans-serif;
+}
+
+.card {
+    margin: 30px 0;
+    padding: 25px 15px;
+    background: #FFF;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+}
+
+.card-header {
+    padding: 0 0 5px 0;
+    margin: 0 0 25px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #EEE;
+}
+
+.card-header p {
+    font-size: 18px;
+}
+
+.card-header .btn-new {
+    padding: 8px 20px;
+    font-size: 14px;
+    border: none;
+    background: #222;
+    color: #FFF;
+    font-weight: 300;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.message {
+    font-size: 14px;
+    width: 300px;
+    padding: 15px 12px;
+    background: rgba(20, 167, 20, 0.726);
+    color: #FFF;
+    border-top: 2px solid #000;
+    border-radius: 5px;
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    opacity: 1;
+    pointer-events: none;
+    transition: 0.5s;
+}
+
+.message.hide {
+    opacity: 0;
+    pointer-events: none;
+
+}
+
+.btn-action {
+    border: none;
+    outline: none;
+    font-size: 12px;
+    padding: 5px;
+    border-radius: 4px;
+    color: #FFF;
+}
+
+.d-flex {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn-action.edit {
+    background: green;
+}
+
+.btn-action.delete {
+    background: red;
+}
+
+img {
+    max-width: 100%;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+    font-size: 14px;
+}
+
+table td,
+table th {
+    border: 1px solid #EEE;
+    padding: 8px;
+}
+
+table th {
+    font-weight: 500;
+    border: 1px solid #DDD;
+    background: #EEE;
+}
+
+table .image-table img {
+    width: 80px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+}
+
+.app {
+    display: flex;
+}
+
+aside {
+    height: 100vh;
+    width: 220px;
+    max-width: 220px;
+    background: #212529;
+    color: #FFF;
+    transition: 0.2s;
+    overflow-y: scroll;
+}
+
+aside::-webkit-scrollbar {
+    display: none;
+}
+
+aside.hide {
+    width: 0;
+    padding: 0;
+}
+
+aside .logo {
+    margin: 0;
+    padding-block: 25px;
+    text-align: center;
+    text-transform: uppercase;
+    font-family: 'Young Serif', serif;
+    letter-spacing: 1px;
+    font-size: 16px;
+    position: sticky;
+    left: 0;
+    top: 0;
+    background: inherit;
+}
+
+
+aside .nav-links {
+    padding: 0 12px;
+    margin: 50px 0 30px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+aside .nav-links .nav-link {
+    padding: 10px 0;
+    font-size: 14px;
+    color: #c7c7c7;
+    text-transform: capitalize;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+aside .nav-links .nav-link:is(:hover, .active) {
+    color: #FFF;
+}
+
+aside .nav-links .nav-link .nav-label {
+    font-size: 13px;
+}
+
+aside .nav-links .nav-link .nav-icon {
+    margin-right: 5px;
+}
+
+aside .nav-links .nav-link .arrow {
+    font-size: 10px;
+    transition: 0.2s;
+}
+
+aside .nav-links .nav-link .arrow.active {
+    transform: rotate(180deg);
+}
+
+aside .nav-links .sub-menu {
+    margin-left: 15px;
+    height: 0;
+    padding: 0;
+    overflow: hidden;
+    transition: 0.2s;
+}
+
+aside .nav-links .sub-menu.active {
+    height: calc(var(--items) * 39.33px);
+}
+
+aside .nav-links .sub-menu .nav-label {
+    font-size: 13px;
+}
+
+main {
+    flex: 1;
+    overflow-y: scroll;
+    height: 100vh;
+    background: #F1F1F1;
+}
+
+
+main header {
+    background: #FFF;
+    padding-block: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    position: sticky;
+    left: 0;
+    top: 0;
+}
+
+main header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+main header .toggler {
+    color: #222;
+    cursor: pointer;
+}
+
+main header i {
+    font-size: 20px;
+}
+
+
+
+main header .features {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+main header .features li {
+    cursor: pointer;
+    position: relative;
+}
+
+main header .features .dropdown {
+    position: absolute;
+    right: 0px;
+    top: 48px;
+    background: #FFF;
+    z-index: 9;
+    width: 180px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+    border-radius: 6px;
+    transform: translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+}
+
+
+
+main header .features li .dropdown.active {
+    transform: translateY(0px);
+    pointer-events: all;
+    opacity: 1;
+}
+
+main header .features .dropdown nav {
+    display: flex;
+    flex-direction: column;
+}
+
+main header .features .dropdown h5 {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #5f5f5f;
+    font-weight: 400;
+    text-transform: capitalize;
+    border-bottom: 1px solid #EEE;
+}
+
+main header .features .dropdown nav {
+    margin-top: 15px;
+}
+
+main header .features .dropdown nav a {
+    font-size: 13px;
+    padding: 8px 12px;
+}
+
+main header .features .dropdown nav form {
+    width: 100%;
+}
+
+main header .features .dropdown nav form button {
+    display: inline-block;
+    width: 100%;
+    text-align: start;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+main header .features .dropdown nav a:hover,
+main header .features .dropdown nav form button:hover {
+    background: #EEE;
+}
+
+main header .features .dropdown nav a i,
+main header .features .dropdown nav form button i {
+    font-size: 13px;
+    margin-right: 5px;
+}
+
+main header .avatar {
+    width: 35px;
+    height: 35px;
+    overflow: hidden;
+}
+
+main header .avatar img {
+    height: 100%;
+    width: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+
+main .braedcamb {
+    background: #FFF;
+    padding-block: 10px;
+    font-size: 14px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+}
+
+main .braedcamb .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+main .braedcamb .container .small-title {
+    font-size: 13px;
+}
+
+
+
+/* Home page */
+
+.content-wrapper h3 {
+    font-size: 14px;
+    font-family: 'Young Serif', serif;
+    font-weight: 400;
+    color: #444444;
+}
+
+.content-wrapper .sub-welcome {
+    margin: 0;
+    padding-block: 6px;
+    font-size: 13px;
+    color: #4f4f4f;
+}
+
+.card-container {
+    margin: 25px 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.card-container .card-item {
+    padding: 20px 25px;
+    background: #FFF;
+    color: #444444;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+    border-radius: 3px;
+}
+
+.card-container .card-item .header {
+    font-weight: 400;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.card-container .card-item .body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-container .card-item .icon {
+    height: 45px;
+    width: 45px;
+    background: #E7F1F7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-container .card-item .count {
+    font-size: 25px;
+    margin: 0;
+}
+
+.card-container .card-item .footer {
+    font-size: 13px;
+    text-align: center;
+    margin: 0;
+}
