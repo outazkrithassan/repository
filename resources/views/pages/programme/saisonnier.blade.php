@@ -35,8 +35,11 @@
                     <div class="row g-3">
                         <div class="col-xxl-2 col-sm-4">
                             <label class="form-label" for="">Saison</label>
-                            <select class="form-control" name="choices-single-default" id="saison">
-                                <option value="">2024</option>
+                            <select class="form-control" name="seasonId" id="seasonId">
+                                <option value="">Select Season</option>
+                                @foreach($saisons as $saison)
+                                    <option value="{{ $saison->id }}">{{ $saison->annee }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-xxl-2 col-sm-4">
@@ -49,7 +52,7 @@
                         </div>
                         <div class="col-xxl-2 col-sm-4">
                             <label class="form-label" for="">Mois</label>
-                            <select class="form-control" name="choices-single-default" id="idPayment">
+                            <select class="form-control filter_data" name="month" id="month">
                                 <option value="">Tous</option>
                                 <option value="1">Janvier</option>
                                 <option value="2">Février</option>
@@ -67,24 +70,24 @@
                         </div>
                         <div class="col-xxl-2 col-sm-4">
                             <label class="form-label" for="">Jour</label>
-                            <select class="form-control" name="choices-single-default" id="idPayment">
+                            <select class="form-control" name="day_of_week" id="day_of_week">
                                 <option value="">Tous</option>
-                                <option value="1">Lundi</option>
-                                <option value="2">Mardi</option>
-                                <option value="3">Mercredi</option>
-                                <option value="4">Jeudi</option>
-                                <option value="5">Vendredi</option>
-                                <option value="6">Samedi</option>
-                                <option value="7">Dimanche</option>
+                                <option value="Lundi">Lundi</option>
+                                <option value="Mardi">Mardi</option>
+                                <option value="Mercredi">Mercredi</option>
+                                <option value="Jeudi">Jeudi</option>
+                                <option value="Vendredi">Vendredi</option>
+                                <option value="Samedi">Samedi</option>
+                                <option value="Dimanche">Dimanche</option>
                             </select>
                         </div>
                         <div class="col-xxl-2 col-sm-4">
-                            <label class="form-label" for="">DU</label>
-                            <input type="date" class="form-control" value="{{ date('Y-m-d') }}">
+                            <label class="form-label" for="start_date">DU</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-xxl-2 col-sm-4">
-                            <label class="form-label" for="">Au</label>
-                            <input type="date" class="form-control" value="">
+                            <label class="form-label" for="end_date">Au</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="">
                         </div>
 
                     </div>
@@ -95,9 +98,10 @@
                     <div class="row">
                         <div class="col-12">
                             @php
-                                $thead = ['date vol', 'numero','Type APP','Capacite', 'arrive', 'heure arrive', 'depart', 'heure depart'];
+                                $thead = ['date vol', 'numero','Type APP','Capacite', 'Assist','arrive', 'heure arrive', 'depart', 'heure depart','min_date','max_date'];
                             @endphp
                             <x-table id='vols' :thead="$thead"></x-table>
+
                         </div>
                     </div>
 
@@ -112,29 +116,43 @@
 @section('script')
     <script src="{{ URL::asset('build/js/app.js') }}"></script>
     <script>
-        let Table = useDatatable({
-            id: 'vols',
-            url: "{{ route('vol.data_saisonnier') }}",
-            cols: ["date_vol", "numero","equipement","capacite", "arrivee", "heure_arrive", "depart",
-                "heure_depart",
-            ],
-            data : ["mouvement"]
-        })
-    </script>
-    {{-- <script>
-        $(document).ready(function() {
-            let Table = useDatatable({
-                id: 'vols',
-                url: "{{ route('vol.data_saisonnier') }}",
-                cols: ["date_vol", "numero", "equipement", "capacite", "arrivee", "heure_arrive", "depart", "heure_depart"],
-                data: ["mouvement"]
+        document.addEventListener('DOMContentLoaded', function () {
+            let Table = $('#vols').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: {
+                    url: "{{ route('vol.data_saisonnier') }}",
+                    data: function (d) {
+                        // Add day_of_week filter to the request
+                        d.day_of_week = $('#day_of_week').val();
+                        d.mouvement = $('#mouvement').val();
+                        d.month = $('#month').val();
+                        d.start_date = $('#start_date').val();
+                        d.end_date = $('#end_date').val();
+                        d.seasonId = $('#seasonId').val();
+                    }
+                },
+                columns: [
+                    { data: 'jour_semaine', name: 'jour_semaine' },
+                    { data: 'numero', name: 'numero' },
+                    { data: 'equipement', name: 'equipement' },
+                    { data: 'capacite', name: 'capacite' },
+                    { data: 'assist', name: 'assist' },
+                    { data: 'arrivee', name: 'arrivee' },
+                    { data: 'heure_arrive', name: 'heure_arrive' },
+                    { data: 'depart', name: 'depart' },
+                    { data: 'heure_depart', name: 'heure_depart' },
+                    { data: 'date_vol_min', name: 'date_vol_min' },
+                    { data: 'date_vol_max', name: 'date_vol_max' }
+                ]
             });
 
-            // Reload DataTable when select input changes
-            $('#mouvement').change(function() {
-                let selectedMouvement = $(this).val();
-                Table.ajax.url("{{ route('vol.data_saisonnier') }}" + "?mouvement=" + selectedMouvement).load();
+            // Event listener for the day filter
+            $('#day_of_week, #mouvement,#month,#start_date, #end_date,#seasonId').on('change', function () {
+                Table.draw();
             });
         });
-    </script> --}}
+    </script>
+
 @endsection
+

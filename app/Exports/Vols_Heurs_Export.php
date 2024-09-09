@@ -23,128 +23,470 @@ class Vols_Heurs_Export implements FromCollection, WithHeadings, WithStyles, Wit
     /**
     * @return \Illuminate\Support\Collection
     */
+    // public function collection()
+    // {
+    //     $query = "WITH TopWeek AS (
+    //             SELECT
+    //                 DATE_FORMAT(va.date_vol, '%Y-%u') AS week_year,
+    //                 CONCAT(
+    //                     DATE_FORMAT(MIN(va.date_vol), '%d-%m'),
+    //                     ' to ',
+    //                     DATE_FORMAT(MAX(va.date_vol), '%d-%m-%Y')
+    //                 ) AS week_period,
+    //                 COUNT(DISTINCT va.id) AS count_arrivee,
+    //                 COUNT(DISTINCT vd.id) AS count_depart,
+    //                 COUNT(DISTINCT va.id) + COUNT(DISTINCT vd.id) AS count_all,
+    //                 MIN(va.date_vol) AS start_date,
+    //                 MAX(va.date_vol) AS end_date
+    //             FROM
+    //                 vol_arrives va
+    //             LEFT JOIN
+    //                 vol_departs vd ON va.date_vol = vd.date_vol
+    //             GROUP BY
+    //                 DATE_FORMAT(va.date_vol, '%Y-%u')
+    //             ORDER BY
+    //                 count_all DESC, week_year DESC
+    //             LIMIT 1
+    //         ),
+    //         FlightData AS (
+    //             SELECT
+    //                 DATE(vd.date_vol) AS flight_date,
+    //                 'Départ' AS flight_type,
+    //                 HOUR(STR_TO_DATE(vd.heure_depart, '%H%i')) AS flight_hour,
+    //                 COUNT(*) AS flight_count
+    //             FROM
+    //                 vol_departs vd
+    //             WHERE
+    //                 DATE(vd.date_vol) BETWEEN (SELECT start_date FROM TopWeek) AND (SELECT end_date FROM TopWeek)
+    //             GROUP BY
+    //                 flight_date, flight_type, flight_hour
+
+    //             UNION ALL
+
+    //             SELECT
+    //                 DATE(va.date_vol) AS flight_date,
+    //                 'Arrivée' AS flight_type,
+    //                 HOUR(STR_TO_DATE(va.heure_arrive, '%H%i')) AS flight_hour,
+    //                 COUNT(*) AS flight_count
+    //             FROM
+    //                 vol_arrives va
+    //             WHERE
+    //                 DATE(va.date_vol) BETWEEN (SELECT start_date FROM TopWeek) AND (SELECT end_date FROM TopWeek)
+    //             GROUP BY
+    //                 flight_date, flight_type, flight_hour
+    //         ),
+    //         Summary AS (
+    //             SELECT
+    //                 flight_date,
+    //                 flight_type,
+    //                 SUM(CASE WHEN flight_hour = 0 THEN flight_count ELSE 0 END) AS `00h à 01h`,
+    //                 SUM(CASE WHEN flight_hour = 1 THEN flight_count ELSE 0 END) AS `01h à 02h`,
+    //                 SUM(CASE WHEN flight_hour = 2 THEN flight_count ELSE 0 END) AS `02h à 03h`,
+    //                 SUM(CASE WHEN flight_hour = 3 THEN flight_count ELSE 0 END) AS `03h à 04h`,
+    //                 SUM(CASE WHEN flight_hour = 4 THEN flight_count ELSE 0 END) AS `04h à 05h`,
+    //                 SUM(CASE WHEN flight_hour = 5 THEN flight_count ELSE 0 END) AS `05h à 06h`,
+    //                 SUM(CASE WHEN flight_hour = 6 THEN flight_count ELSE 0 END) AS `06h à 07h`,
+    //                 SUM(CASE WHEN flight_hour = 7 THEN flight_count ELSE 0 END) AS `07h à 08h`,
+    //                 SUM(CASE WHEN flight_hour = 8 THEN flight_count ELSE 0 END) AS `08h à 09h`,
+    //                 SUM(CASE WHEN flight_hour = 9 THEN flight_count ELSE 0 END) AS `09h à 10h`,
+    //                 SUM(CASE WHEN flight_hour = 10 THEN flight_count ELSE 0 END) AS `10h à 11h`,
+    //                 SUM(CASE WHEN flight_hour = 11 THEN flight_count ELSE 0 END) AS `11h à 12h`,
+    //                 SUM(CASE WHEN flight_hour = 12 THEN flight_count ELSE 0 END) AS `12h à 13h`,
+    //                 SUM(CASE WHEN flight_hour = 13 THEN flight_count ELSE 0 END) AS `13h à 14h`,
+    //                 SUM(CASE WHEN flight_hour = 14 THEN flight_count ELSE 0 END) AS `14h à 15h`,
+    //                 SUM(CASE WHEN flight_hour = 15 THEN flight_count ELSE 0 END) AS `15h à 16h`,
+    //                 SUM(CASE WHEN flight_hour = 16 THEN flight_count ELSE 0 END) AS `16h à 17h`,
+    //                 SUM(CASE WHEN flight_hour = 17 THEN flight_count ELSE 0 END) AS `17h à 18h`,
+    //                 SUM(CASE WHEN flight_hour = 18 THEN flight_count ELSE 0 END) AS `18h à 19h`,
+    //                 SUM(CASE WHEN flight_hour = 19 THEN flight_count ELSE 0 END) AS `19h à 20h`,
+    //                 SUM(CASE WHEN flight_hour = 20 THEN flight_count ELSE 0 END) AS `20h à 21h`,
+    //                 SUM(CASE WHEN flight_hour = 21 THEN flight_count ELSE 0 END) AS `21h à 22h`,
+    //                 SUM(CASE WHEN flight_hour = 22 THEN flight_count ELSE 0 END) AS `22h à 23h`,
+    //                 SUM(CASE WHEN flight_hour = 23 THEN flight_count ELSE 0 END) AS `23h à 00h`
+    //             FROM
+    //                 FlightData
+    //             GROUP BY
+    //                 flight_date, flight_type
+    //         )
+    //         SELECT
+    //             flight_date,
+    //             flight_type,
+    //             `00h à 01h`,
+    //             `01h à 02h`,
+    //             `02h à 03h`,
+    //             `03h à 04h`,
+    //             `04h à 05h`,
+    //             `05h à 06h`,
+    //             `06h à 07h`,
+    //             `07h à 08h`,
+    //             `08h à 09h`,
+    //             `09h à 10h`,
+    //             `10h à 11h`,
+    //             `11h à 12h`,
+    //             `12h à 13h`,
+    //             `13h à 14h`,
+    //             `14h à 15h`,
+    //             `15h à 16h`,
+    //             `16h à 17h`,
+    //             `17h à 18h`,
+    //             `18h à 19h`,
+    //             `19h à 20h`,
+    //             `20h à 21h`,
+    //             `21h à 22h`,
+    //             `22h à 23h`,
+    //             `23h à 00h`
+
+
+    //         FROM
+    //             Summary
+    //         ORDER BY
+    //             flight_date, flight_type;
+    //     ";
+
+    //     return collect(DB::select($query));
+    // }
+    // public function collection()
+    // {
+    //     $sql_arrive = "
+    //     WITH TopWeek AS (
+    //         SELECT
+    //             DATE_FORMAT(va.date_vol, '%Y-%u') AS week_year,
+    //             CONCAT(
+    //                 DATE_FORMAT(MIN(va.date_vol), '%d-%m'),
+    //                 ' to ',
+    //                 DATE_FORMAT(MAX(va.date_vol), '%d-%m-%Y')
+    //             ) AS week_period,
+    //             COUNT(DISTINCT va.id) AS count_arrivee,
+    //             COUNT(DISTINCT vd.id) AS count_depart,
+    //             COUNT(DISTINCT va.id) + COUNT(DISTINCT vd.id) AS count_all,
+    //             MIN(va.date_vol) AS start_date,
+    //             MAX(va.date_vol) AS end_date
+    //         FROM
+    //             vol_arrives va
+    //         LEFT JOIN
+    //             vol_departs vd ON va.date_vol = vd.date_vol
+    //         GROUP BY
+    //             DATE_FORMAT(va.date_vol, '%Y-%u')
+    //         ORDER BY
+    //             count_all DESC, week_year DESC
+    //         LIMIT 1
+    //     ),
+    //     FlightData AS (
+    //         SELECT
+    //             DATE(va.date_vol) AS flight_date,
+    //             'Arrivée' AS flight_type,
+    //             HOUR(STR_TO_DATE(va.heure_arrive, '%H%i')) AS flight_hour,
+    //             COUNT(*) AS flight_count
+    //         FROM
+    //             vol_arrives va
+    //         WHERE
+    //             DATE(va.date_vol) BETWEEN (SELECT start_date FROM TopWeek) AND (SELECT end_date FROM TopWeek)
+    //         GROUP BY
+    //             flight_date, flight_type, flight_hour
+    //     ),
+    //     Summary AS (
+    //         SELECT
+    //             flight_date,
+    //             flight_type,
+    //             SUM(CASE WHEN flight_hour = 0 THEN flight_count ELSE 0 END) AS `00h à 01h`,
+    //             SUM(CASE WHEN flight_hour = 1 THEN flight_count ELSE 0 END) AS `01h à 02h`,
+    //             SUM(CASE WHEN flight_hour = 2 THEN flight_count ELSE 0 END) AS `02h à 03h`,
+    //             SUM(CASE WHEN flight_hour = 3 THEN flight_count ELSE 0 END) AS `03h à 04h`,
+    //             SUM(CASE WHEN flight_hour = 4 THEN flight_count ELSE 0 END) AS `04h à 05h`,
+    //             SUM(CASE WHEN flight_hour = 5 THEN flight_count ELSE 0 END) AS `05h à 06h`,
+    //             SUM(CASE WHEN flight_hour = 6 THEN flight_count ELSE 0 END) AS `06h à 07h`,
+    //             SUM(CASE WHEN flight_hour = 7 THEN flight_count ELSE 0 END) AS `07h à 08h`,
+    //             SUM(CASE WHEN flight_hour = 8 THEN flight_count ELSE 0 END) AS `08h à 09h`,
+    //             SUM(CASE WHEN flight_hour = 9 THEN flight_count ELSE 0 END) AS `09h à 10h`,
+    //             SUM(CASE WHEN flight_hour = 10 THEN flight_count ELSE 0 END) AS `10h à 11h`,
+    //             SUM(CASE WHEN flight_hour = 11 THEN flight_count ELSE 0 END) AS `11h à 12h`,
+    //             SUM(CASE WHEN flight_hour = 12 THEN flight_count ELSE 0 END) AS `12h à 13h`,
+    //             SUM(CASE WHEN flight_hour = 13 THEN flight_count ELSE 0 END) AS `13h à 14h`,
+    //             SUM(CASE WHEN flight_hour = 14 THEN flight_count ELSE 0 END) AS `14h à 15h`,
+    //             SUM(CASE WHEN flight_hour = 15 THEN flight_count ELSE 0 END) AS `15h à 16h`,
+    //             SUM(CASE WHEN flight_hour = 16 THEN flight_count ELSE 0 END) AS `16h à 17h`,
+    //             SUM(CASE WHEN flight_hour = 17 THEN flight_count ELSE 0 END) AS `17h à 18h`,
+    //             SUM(CASE WHEN flight_hour = 18 THEN flight_count ELSE 0 END) AS `18h à 19h`,
+    //             SUM(CASE WHEN flight_hour = 19 THEN flight_count ELSE 0 END) AS `19h à 20h`,
+    //             SUM(CASE WHEN flight_hour = 20 THEN flight_count ELSE 0 END) AS `20h à 21h`,
+    //             SUM(CASE WHEN flight_hour = 21 THEN flight_count ELSE 0 END) AS `21h à 22h`,
+    //             SUM(CASE WHEN flight_hour = 22 THEN flight_count ELSE 0 END) AS `22h à 23h`,
+    //             SUM(CASE WHEN flight_hour = 23 THEN flight_count ELSE 0 END) AS `23h à 00h`
+    //         FROM
+    //             FlightData
+    //         GROUP BY
+    //             flight_date, flight_type
+    //     )
+    //     SELECT
+    //         flight_date,
+    //         flight_type,
+    //         `00h à 01h`,
+    //         `01h à 02h`,
+    //         `02h à 03h`,
+    //         `03h à 04h`,
+    //         `04h à 05h`,
+    //         `05h à 06h`,
+    //         `06h à 07h`,
+    //         `07h à 08h`,
+    //         `08h à 09h`,
+    //         `09h à 10h`,
+    //         `10h à 11h`,
+    //         `11h à 12h`,
+    //         `12h à 13h`,
+    //         `13h à 14h`,
+    //         `14h à 15h`,
+    //         `15h à 16h`,
+    //         `16h à 17h`,
+    //         `17h à 18h`,
+    //         `18h à 19h`,
+    //         `19h à 20h`,
+    //         `20h à 21h`,
+    //         `21h à 22h`,
+    //         `22h à 23h`,
+    //         `23h à 00h`
+    //     FROM
+    //         Summary
+    //     ORDER BY
+    //         flight_date, flight_type;
+    //     ";
+
+    //     $sql_depart = "
+    //     WITH TopWeek AS (
+    //         SELECT
+    //             DATE_FORMAT(vd.date_vol, '%Y-%u') AS week_year,
+    //             CONCAT(
+    //                 DATE_FORMAT(MIN(vd.date_vol), '%d-%m'),
+    //                 ' to ',
+    //                 DATE_FORMAT(MAX(vd.date_vol), '%d-%m-%Y')
+    //             ) AS week_period,
+    //             COUNT(DISTINCT vd.id) AS count_depart,
+    //             COUNT(DISTINCT va.id) AS count_arrivee,
+    //             COUNT(DISTINCT vd.id) + COUNT(DISTINCT va.id) AS count_all,
+    //             MIN(vd.date_vol) AS start_date,
+    //             MAX(vd.date_vol) AS end_date
+    //         FROM
+    //             vol_departs vd
+    //         LEFT JOIN
+    //             vol_arrives va ON vd.date_vol = va.date_vol
+    //         GROUP BY
+    //             DATE_FORMAT(vd.date_vol, '%Y-%u')
+    //         ORDER BY
+    //             count_all DESC, week_year DESC
+    //         LIMIT 1
+    //     ),
+    //     FlightData AS (
+    //         SELECT
+    //             DATE(vd.date_vol) AS flight_date,
+    //             'Départ' AS flight_type,
+    //             HOUR(STR_TO_DATE(vd.heure_depart, '%H%i')) AS flight_hour,
+    //             COUNT(*) AS flight_count
+    //         FROM
+    //             vol_departs vd
+    //         WHERE
+    //             DATE(vd.date_vol) BETWEEN (SELECT start_date FROM TopWeek) AND (SELECT end_date FROM TopWeek)
+    //         GROUP BY
+    //             flight_date, flight_type, flight_hour
+    //     ),
+    //     Summary AS (
+    //         SELECT
+    //             flight_date,
+    //             flight_type,
+    //             SUM(CASE WHEN flight_hour = 0 THEN flight_count ELSE 0 END) AS `00h à 01h`,
+    //             SUM(CASE WHEN flight_hour = 1 THEN flight_count ELSE 0 END) AS `01h à 02h`,
+    //             SUM(CASE WHEN flight_hour = 2 THEN flight_count ELSE 0 END) AS `02h à 03h`,
+    //             SUM(CASE WHEN flight_hour = 3 THEN flight_count ELSE 0 END) AS `03h à 04h`,
+    //             SUM(CASE WHEN flight_hour = 4 THEN flight_count ELSE 0 END) AS `04h à 05h`,
+    //             SUM(CASE WHEN flight_hour = 5 THEN flight_count ELSE 0 END) AS `05h à 06h`,
+    //             SUM(CASE WHEN flight_hour = 6 THEN flight_count ELSE 0 END) AS `06h à 07h`,
+    //             SUM(CASE WHEN flight_hour = 7 THEN flight_count ELSE 0 END) AS `07h à 08h`,
+    //             SUM(CASE WHEN flight_hour = 8 THEN flight_count ELSE 0 END) AS `08h à 09h`,
+    //             SUM(CASE WHEN flight_hour = 9 THEN flight_count ELSE 0 END) AS `09h à 10h`,
+    //             SUM(CASE WHEN flight_hour = 10 THEN flight_count ELSE 0 END) AS `10h à 11h`,
+    //             SUM(CASE WHEN flight_hour = 11 THEN flight_count ELSE 0 END) AS `11h à 12h`,
+    //             SUM(CASE WHEN flight_hour = 12 THEN flight_count ELSE 0 END) AS `12h à 13h`,
+    //             SUM(CASE WHEN flight_hour = 13 THEN flight_count ELSE 0 END) AS `13h à 14h`,
+    //             SUM(CASE WHEN flight_hour = 14 THEN flight_count ELSE 0 END) AS `14h à 15h`,
+    //             SUM(CASE WHEN flight_hour = 15 THEN flight_count ELSE 0 END) AS `15h à 16h`,
+    //             SUM(CASE WHEN flight_hour = 16 THEN flight_count ELSE 0 END) AS `16h à 17h`,
+    //             SUM(CASE WHEN flight_hour = 17 THEN flight_count ELSE 0 END) AS `17h à 18h`,
+    //             SUM(CASE WHEN flight_hour = 18 THEN flight_count ELSE 0 END) AS `18h à 19h`,
+    //             SUM(CASE WHEN flight_hour = 19 THEN flight_count ELSE 0 END) AS `19h à 20h`,
+    //             SUM(CASE WHEN flight_hour = 20 THEN flight_count ELSE 0 END) AS `20h à 21h`,
+    //             SUM(CASE WHEN flight_hour = 21 THEN flight_count ELSE 0 END) AS `21h à 22h`,
+    //             SUM(CASE WHEN flight_hour = 22 THEN flight_count ELSE 0 END) AS `22h à 23h`,
+    //             SUM(CASE WHEN flight_hour = 23 THEN flight_count ELSE 0 END) AS `23h à 00h`
+    //         FROM
+    //             FlightData
+    //         GROUP BY
+    //             flight_date, flight_type
+    //     )
+    //     SELECT
+    //         flight_date,
+    //         flight_type,
+    //         `00h à 01h`,
+    //         `01h à 02h`,
+    //         `02h à 03h`,
+    //         `03h à 04h`,
+    //         `04h à 05h`,
+    //         `05h à 06h`,
+    //         `06h à 07h`,
+    //         `07h à 08h`,
+    //         `08h à 09h`,
+    //         `09h à 10h`,
+    //         `10h à 11h`,
+    //         `11h à 12h`,
+    //         `12h à 13h`,
+    //         `13h à 14h`,
+    //         `14h à 15h`,
+    //         `15h à 16h`,
+    //         `16h à 17h`,
+    //         `17h à 18h`,
+    //         `18h à 19h`,
+    //         `19h à 20h`,
+    //         `20h à 21h`,
+    //         `21h à 22h`,
+    //         `22h à 23h`,
+    //         `23h à 00h`
+    //     FROM
+    //         Summary
+    //     ORDER BY
+    //         flight_date, flight_type;
+    //     ";
+
+    //     // Execute the queries and collect results
+    //     $arrivals = collect(DB::select($sql_arrive));
+    //     $departures = collect(DB::select($sql_depart));
+
+    //     // Combine the results if needed
+    //     // For example, to show both arrivals and departures in a single view
+    //     $combined_results = [
+    //         'arrive' => $arrivals,
+    //         'depart' => $departures
+    //     ];
+    //     echo "<pre>";
+    //         print_r($combined_results);
+    //     echo "</pre>";
+    //     die;
+
+
+    // }
+
+
+
+
+    // echo "<pre>";
+    //         print_r(DB::select($query));
+    // echo"</pre>";
+    // die;
+
+
+    protected $selectedSeason;
+
+    public function __construct($selectedSeason)
+    {
+        $this->selectedSeason = $selectedSeason;
+    }
     public function collection()
     {
-        $query = "WITH TopWeek AS (
-                SELECT
-                    DATE_FORMAT(va.date_vol, '%Y-%u') AS week_year,
-                    CONCAT(
-                        DATE_FORMAT(MIN(va.date_vol), '%d-%m'),
-                        ' to ',
-                        DATE_FORMAT(MAX(va.date_vol), '%d-%m-%Y')
-                    ) AS week_period,
-                    COUNT(DISTINCT va.id) AS count_arrivee,
-                    COUNT(DISTINCT vd.id) AS count_depart,
-                    COUNT(DISTINCT va.id) + COUNT(DISTINCT vd.id) AS count_all,
-                    MIN(va.date_vol) AS start_date,
-                    MAX(va.date_vol) AS end_date
-                FROM
-                    vol_arrives va
-                LEFT JOIN
-                    vol_departs vd ON va.date_vol = vd.date_vol
-                GROUP BY
-                    DATE_FORMAT(va.date_vol, '%Y-%u')
-                ORDER BY
-                    count_all DESC, week_year DESC
-                LIMIT 1
-            ),
-            FlightData AS (
-                SELECT
-                    DATE(vd.date_vol) AS flight_date,
-                    'Départ' AS flight_type,
-                    HOUR(STR_TO_DATE(vd.heure_depart, '%H%i')) AS flight_hour,
-                    COUNT(*) AS flight_count
-                FROM
-                    vol_departs vd
-                WHERE
-                    DATE(vd.date_vol) BETWEEN (SELECT start_date FROM TopWeek) AND (SELECT end_date FROM TopWeek)
-                GROUP BY
-                    flight_date, flight_type, flight_hour
+        $selectedSeason = $this->selectedSeason;
+        // Step 1: Get the top week data
+        $topWeek = DB::table('vol_arrives as va')
+            ->leftJoin('vol_departs as vd', 'va.date_vol', '=', 'vd.date_vol')
+            ->selectRaw("
+                DATE_FORMAT(va.date_vol, '%Y-%u') AS week_year,
+                CONCAT(
+                    DATE_FORMAT(MIN(va.date_vol), '%d-%m'),
+                    ' to ',
+                    DATE_FORMAT(MAX(va.date_vol), '%d-%m-%Y')
+                ) AS week_period,
+                COUNT(DISTINCT va.id) AS count_arrivee,
+                COUNT(DISTINCT vd.id) AS count_depart,
+                COUNT(DISTINCT va.id) + COUNT(DISTINCT vd.id) AS count_all,
+                MIN(va.date_vol) AS start_date,
+                MAX(va.date_vol) AS end_date
+            ")
+            ->where('va.saison_id',$selectedSeason)
+            ->groupBy(DB::raw("DATE_FORMAT(va.date_vol, '%Y-%u')"))
+            ->orderBy('count_all', 'DESC')
+            ->orderBy('week_year', 'DESC')
+            ->limit(1)
+            ->first();
 
-                UNION ALL
+        if (!$topWeek) {
+            return collect(); // Return an empty collection if no top week is found
+        }
 
-                SELECT
-                    DATE(va.date_vol) AS flight_date,
-                    'Arrivée' AS flight_type,
-                    HOUR(STR_TO_DATE(va.heure_arrive, '%H%i')) AS flight_hour,
-                    COUNT(*) AS flight_count
-                FROM
-                    vol_arrives va
-                WHERE
-                    DATE(va.date_vol) BETWEEN (SELECT start_date FROM TopWeek) AND (SELECT end_date FROM TopWeek)
-                GROUP BY
-                    flight_date, flight_type, flight_hour
-            ),
-            Summary AS (
-                SELECT
-                    flight_date,
-                    flight_type,
-                    SUM(CASE WHEN flight_hour = 0 THEN flight_count ELSE 0 END) AS `00h à 01h`,
-                    SUM(CASE WHEN flight_hour = 1 THEN flight_count ELSE 0 END) AS `01h à 02h`,
-                    SUM(CASE WHEN flight_hour = 2 THEN flight_count ELSE 0 END) AS `02h à 03h`,
-                    SUM(CASE WHEN flight_hour = 3 THEN flight_count ELSE 0 END) AS `03h à 04h`,
-                    SUM(CASE WHEN flight_hour = 4 THEN flight_count ELSE 0 END) AS `04h à 05h`,
-                    SUM(CASE WHEN flight_hour = 5 THEN flight_count ELSE 0 END) AS `05h à 06h`,
-                    SUM(CASE WHEN flight_hour = 6 THEN flight_count ELSE 0 END) AS `06h à 07h`,
-                    SUM(CASE WHEN flight_hour = 7 THEN flight_count ELSE 0 END) AS `07h à 08h`,
-                    SUM(CASE WHEN flight_hour = 8 THEN flight_count ELSE 0 END) AS `08h à 09h`,
-                    SUM(CASE WHEN flight_hour = 9 THEN flight_count ELSE 0 END) AS `09h à 10h`,
-                    SUM(CASE WHEN flight_hour = 10 THEN flight_count ELSE 0 END) AS `10h à 11h`,
-                    SUM(CASE WHEN flight_hour = 11 THEN flight_count ELSE 0 END) AS `11h à 12h`,
-                    SUM(CASE WHEN flight_hour = 12 THEN flight_count ELSE 0 END) AS `12h à 13h`,
-                    SUM(CASE WHEN flight_hour = 13 THEN flight_count ELSE 0 END) AS `13h à 14h`,
-                    SUM(CASE WHEN flight_hour = 14 THEN flight_count ELSE 0 END) AS `14h à 15h`,
-                    SUM(CASE WHEN flight_hour = 15 THEN flight_count ELSE 0 END) AS `15h à 16h`,
-                    SUM(CASE WHEN flight_hour = 16 THEN flight_count ELSE 0 END) AS `16h à 17h`,
-                    SUM(CASE WHEN flight_hour = 17 THEN flight_count ELSE 0 END) AS `17h à 18h`,
-                    SUM(CASE WHEN flight_hour = 18 THEN flight_count ELSE 0 END) AS `18h à 19h`,
-                    SUM(CASE WHEN flight_hour = 19 THEN flight_count ELSE 0 END) AS `19h à 20h`,
-                    SUM(CASE WHEN flight_hour = 20 THEN flight_count ELSE 0 END) AS `20h à 21h`,
-                    SUM(CASE WHEN flight_hour = 21 THEN flight_count ELSE 0 END) AS `21h à 22h`,
-                    SUM(CASE WHEN flight_hour = 22 THEN flight_count ELSE 0 END) AS `22h à 23h`,
-                    SUM(CASE WHEN flight_hour = 23 THEN flight_count ELSE 0 END) AS `23h à 00h`
-                FROM
-                    FlightData
-                GROUP BY
-                    flight_date, flight_type
-            )
-            SELECT
+        // Step 2: Get flight data within the top week
+        $flightData = DB::table(DB::raw('(' . $this->getFlightDataQuery($topWeek) . ') as FlightData'))
+            ->selectRaw("
                 flight_date,
                 flight_type,
-                `00h à 01h`,
-                `01h à 02h`,
-                `02h à 03h`,
-                `03h à 04h`,
-                `04h à 05h`,
-                `05h à 06h`,
-                `06h à 07h`,
-                `07h à 08h`,
-                `08h à 09h`,
-                `09h à 10h`,
-                `10h à 11h`,
-                `11h à 12h`,
-                `12h à 13h`,
-                `13h à 14h`,
-                `14h à 15h`,
-                `15h à 16h`,
-                `16h à 17h`,
-                `17h à 18h`,
-                `18h à 19h`,
-                `19h à 20h`,
-                `20h à 21h`,
-                `21h à 22h`,
-                `22h à 23h`,
-                `23h à 00h`
+                SUM(CASE WHEN flight_hour = 0 THEN flight_count ELSE 0 END) AS `00h à 01h`,
+                SUM(CASE WHEN flight_hour = 1 THEN flight_count ELSE 0 END) AS `01h à 02h`,
+                SUM(CASE WHEN flight_hour = 2 THEN flight_count ELSE 0 END) AS `02h à 03h`,
+                SUM(CASE WHEN flight_hour = 3 THEN flight_count ELSE 0 END) AS `03h à 04h`,
+                SUM(CASE WHEN flight_hour = 4 THEN flight_count ELSE 0 END) AS `04h à 05h`,
+                SUM(CASE WHEN flight_hour = 5 THEN flight_count ELSE 0 END) AS `05h à 06h`,
+                SUM(CASE WHEN flight_hour = 6 THEN flight_count ELSE 0 END) AS `06h à 07h`,
+                SUM(CASE WHEN flight_hour = 7 THEN flight_count ELSE 0 END) AS `07h à 08h`,
+                SUM(CASE WHEN flight_hour = 8 THEN flight_count ELSE 0 END) AS `08h à 09h`,
+                SUM(CASE WHEN flight_hour = 9 THEN flight_count ELSE 0 END) AS `09h à 10h`,
+                SUM(CASE WHEN flight_hour = 10 THEN flight_count ELSE 0 END) AS `10h à 11h`,
+                SUM(CASE WHEN flight_hour = 11 THEN flight_count ELSE 0 END) AS `11h à 12h`,
+                SUM(CASE WHEN flight_hour = 12 THEN flight_count ELSE 0 END) AS `12h à 13h`,
+                SUM(CASE WHEN flight_hour = 13 THEN flight_count ELSE 0 END) AS `13h à 14h`,
+                SUM(CASE WHEN flight_hour = 14 THEN flight_count ELSE 0 END) AS `14h à 15h`,
+                SUM(CASE WHEN flight_hour = 15 THEN flight_count ELSE 0 END) AS `15h à 16h`,
+                SUM(CASE WHEN flight_hour = 16 THEN flight_count ELSE 0 END) AS `16h à 17h`,
+                SUM(CASE WHEN flight_hour = 17 THEN flight_count ELSE 0 END) AS `17h à 18h`,
+                SUM(CASE WHEN flight_hour = 18 THEN flight_count ELSE 0 END) AS `18h à 19h`,
+                SUM(CASE WHEN flight_hour = 19 THEN flight_count ELSE 0 END) AS `19h à 20h`,
+                SUM(CASE WHEN flight_hour = 20 THEN flight_count ELSE 0 END) AS `20h à 21h`,
+                SUM(CASE WHEN flight_hour = 21 THEN flight_count ELSE 0 END) AS `21h à 22h`,
+                SUM(CASE WHEN flight_hour = 22 THEN flight_count ELSE 0 END) AS `22h à 23h`,
+                SUM(CASE WHEN flight_hour = 23 THEN flight_count ELSE 0 END) AS `23h à 00h`
+            ")
 
+            ->groupBy('flight_date', 'flight_type')
+            ->get();
 
-            FROM
-                Summary
-            ORDER BY
-                flight_date, flight_type;
-        ";
-
-        return collect(DB::select($query));
+        return collect($flightData);
     }
+
+    protected function getFlightDataQuery($topWeek)
+    {
+        $selectedSeason = $this->selectedSeason;
+        return "
+            SELECT
+                DATE(vd.date_vol) AS flight_date,
+                'Départ' AS flight_type,
+                HOUR(STR_TO_DATE(vd.heure_depart, '%H%i')) AS flight_hour,
+                COUNT(*) AS flight_count
+            FROM
+                vol_departs vd
+            WHERE
+                DATE(vd.date_vol) BETWEEN '{$topWeek->start_date}' AND '{$topWeek->end_date}'
+                AND vd.saison_id = $selectedSeason
+            GROUP BY
+                flight_date, flight_type, flight_hour
+            UNION ALL
+            SELECT
+                DATE(va.date_vol) AS flight_date,
+                'Arrivée' AS flight_type,
+                HOUR(STR_TO_DATE(va.heure_arrive, '%H%i')) AS flight_hour,
+                COUNT(*) AS flight_count
+            FROM
+                vol_arrives va
+            WHERE
+                DATE(va.date_vol) BETWEEN '{$topWeek->start_date}' AND '{$topWeek->end_date}'
+                AND va.saison_id = $selectedSeason
+            GROUP BY
+                flight_date, flight_type, flight_hour
+        ";
+    }
+
+
+
 
     public function headings(): array
     {

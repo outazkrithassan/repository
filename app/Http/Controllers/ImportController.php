@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Imports\ImportVols;
 use App\Models\Saison;
 use App\Models\Vol;
+use App\Models\VolArrive;
+use App\Models\VolDepart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -86,10 +88,19 @@ class ImportController extends Controller
         $saison = Saison::find($id);
 
         if ($saison) {
-            $vols = Vol::where('saison_id', $id)->get();
-            foreach ($vols as $vol) {
-                $vol->delete();
+            // Fetch and delete all 'VolArrive' records for the specified 'saison_id'
+            $volsArrive = VolArrive::where('saison_id', $id)->get();
+            foreach ($volsArrive as $volArrive) {
+                $volArrive->delete();
             }
+
+            // Fetch and delete all 'VolDepart' records for the specified 'saison_id'
+            $volsDepart = VolDepart::where('saison_id', $id)->get();
+            foreach ($volsDepart as $volDepart) {
+                $volDepart->delete();
+            }
+
+            // Finally, delete the 'Saison'
             $saison->delete();
         }
 
@@ -100,10 +111,10 @@ class ImportController extends Controller
 
     public function datatable()
     {
-        $saisons = DB::select("SELECT 
+        $saisons = DB::select("SELECT
                 id as id ,
-                annee as annee 
-                from saisons 
+                annee as annee
+                from saisons
         ");
 
         $dataTable = DataTables::of($saisons)
