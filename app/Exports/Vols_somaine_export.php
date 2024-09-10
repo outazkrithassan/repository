@@ -63,7 +63,8 @@ class Vols_somaine_export implements FromCollection, WithHeadings, WithStyles, S
             na.name AS assist,
             DAYNAME(COALESCE(va.date_vol, vd.date_vol)) AS date_vol,
             COALESCE(va.date_vol, vd.date_vol) AS flight_date,
-            vd.saison_id
+            vd.saison_id,
+            sa.annee AS saison
         ')
         ->leftJoin('vol_freres as vf', 'vd.numero', '=', 'vf.numero_depart')
         ->leftJoin('vol_arrives as va', function ($join) {
@@ -86,6 +87,10 @@ class Vols_somaine_export implements FromCollection, WithHeadings, WithStyles, S
             $join->on('vc_arrive.nom', '=', 'na.code')
                 ->orOn('vc_depart.nom', '=', 'na.code');
 
+        })
+        ->leftJoin('saisons as sa', function ($join) {
+            $join->on('va.saison_id', '=', 'sa.id')
+                ->orOn('vd.saison_id', '=', 'sa.id');
         })->where('vd.saison_id',$selectedSeason);
 
 
@@ -109,12 +114,14 @@ class Vols_somaine_export implements FromCollection, WithHeadings, WithStyles, S
                 na.name AS assist,
                 DAYNAME(va.date_vol) AS date_vol,
                 va.date_vol AS flight_date,
-                va.saison_id
+                va.saison_id,
+                sa.annee AS saison
             ')
             ->leftJoin('city_codes as cc_arrivee', 'va.depart', '=', 'cc_arrivee.code')
             ->leftJoin('companies as vc_arrive', 'va.companie_id', '=', 'vc_arrive.id')
             ->leftJoin('avions as a', 'va.avion_id', '=', 'a.id')
             ->leftJoin('name_assist as na', 'vc_arrive.nom', '=', 'na.code')
+            ->leftJoin('saisons as sa', 'va.saison_id', '=', 'sa.id')
             ->where('va.saison_id',$selectedSeason);
 
 
@@ -130,15 +137,20 @@ class Vols_somaine_export implements FromCollection, WithHeadings, WithStyles, S
                 'week' => $group->first()->flight_date, // Store the date of the first flight in the group
                 'count' => $group->count(), // Count the number of flights in the week
                 'flights' => $group, // Store all the flights in the group
+                'week_format' => \Carbon\Carbon::parse($group->first()->flight_date)->format('W-Y')
             ];
         });
 
-        // Find the second busiest week
-        $busiestWeek = $weeklyFlightCounts
-            ->sortByDesc('count') // Sort by the number of flights in descending order
-            ->skip(1) // Skip the first result (the busiest week)
-            ->take(1) // Limit the result to only 1 (get the second busiest week)
-            ->first(); // Get the first item, which is the second busiest week's flights
+        // Sort by the week format (W-Y)
+        $sortedWeeklyFlightCounts = $weeklyFlightCounts->sortByDesc(function ($item) {
+            return \Carbon\Carbon::parse($item['week'])->format('W-Y'); // Sort by week number and year
+        })->sortByDesc('count'); // Then sort by count
+
+        $busiestWeek = $sortedWeeklyFlightCounts->first(); // Get the first result, which is the busiest week
+        // Now you can get the busiest week or any other data as needed
+        // $busiestWeek = $sortedWeeklyFlightCounts->sortByDesc('count')->first(); // Get the busiest week
+
+
 
         // Get flights for the busiest week
         $finalFlights = $busiestWeek ? $busiestWeek['flights'] : collect();

@@ -27,24 +27,31 @@ class VolController extends Controller
 
     public function somaine(Request $request)
     {
-        $selectedSeason = 1;
 
+        // Fetch all saisons
         $saisons = DB::table('saisons')->get();
+
+        // Get the busiest week for each saison_id
         $results = DB::select("
-            SELECT
-                DATE_FORMAT(date_vol, '%Y-%u') AS week_year,
-                COUNT(*) AS total_flights,
-                saison_id,
-                GROUP_CONCAT(DISTINCT DATE_FORMAT(date_vol, '%Y-%m-%d') ORDER BY date_vol ASC SEPARATOR ',') AS days
-            FROM (
-                SELECT date_vol, saison_id FROM vol_arrives
-                UNION ALL
-                SELECT date_vol, saison_id FROM vol_departs
-            ) AS combined_flights
-            GROUP BY week_year, saison_id
-            ORDER BY total_flights DESC, week_year DESC
-            LIMIT 1
-        ",[$selectedSeason]); // Use parameter binding for safety
+            WITH RankedFlights AS (
+                SELECT
+                    DATE_FORMAT(date_vol, '%Y-%u') AS week_year,
+                    saison_id,
+                    COUNT(*) AS total_flights,
+                    GROUP_CONCAT(DISTINCT DATE_FORMAT(date_vol, '%Y-%m-%d') ORDER BY date_vol ASC SEPARATOR ', ') AS days,
+                    ROW_NUMBER() OVER (PARTITION BY saison_id ORDER BY COUNT(*) DESC, week_year DESC) AS row_num
+                FROM (
+                    SELECT date_vol, saison_id FROM vol_arrives
+                    UNION ALL
+                    SELECT date_vol, saison_id FROM vol_departs
+                ) AS combined_flights
+                GROUP BY week_year, saison_id
+            )
+            SELECT week_year, saison_id, total_flights, days
+            FROM RankedFlights
+            WHERE row_num = 1  -- One result for each saison_id
+            ORDER BY saison_id;
+        ");
 
         // Initialize the results array
         $array = [];
@@ -52,6 +59,7 @@ class VolController extends Controller
         // Iterate through the results
         foreach ($results as $row) {
             // Extract the days from the 'days' column
+            $saison_id = $row->saison_id;  // Correctly assign saison_id
             $days = explode(',', $row->days);
             $formattedDays = [];
 
@@ -65,20 +73,20 @@ class VolController extends Controller
                 $formattedDays[] = [
                     'dayName' => $dayName,
                     'formattedDate' => $formattedDate,
-                    'date' => $day
+                    'date' => $day,
                 ]; // Create an array of objects for each day
             }
 
-            // Ensure unique formatted days for each season
-            if (!isset($array[$row->saison_id])) {
-                $array[$row->saison_id] = []; // Initialize if not set
+            // Ensure unique formatted days for each saison
+            if (!isset($array[$saison_id])) {
+                $array[$saison_id] = []; // Initialize if not set
             }
 
             // Merge formatted days while ensuring uniqueness based on the date
             foreach ($formattedDays as $formattedDay) {
                 // Check for existing dates to avoid duplicates
-                if (!in_array($formattedDay['date'], array_column($array[$row->saison_id], 'date'))) {
-                    $array[$row->saison_id][] = $formattedDay;
+                if (!in_array($formattedDay['date'], array_column($array[$saison_id], 'date'))) {
+                    $array[$saison_id][] = $formattedDay;
                 }
             }
         }
@@ -705,7 +713,7 @@ class VolController extends Controller
                 a.equipement,
                 a.capacite,
                 na.name AS assist,
-                CASE DAYNAME(vd.date_vol)
+                CASE DAYNAME(COALESCE(va.date_vol, vd.date_vol))
                     WHEN "Monday" THEN "Lundi"
                     WHEN "Tuesday" THEN "Mardi"
                     WHEN "Wednesday" THEN "Mercredi"
@@ -1794,6 +1802,7 @@ class VolController extends Controller
     public function datatable_somaine(Request $request)
     {
        $selectedSeason = $request->input('selectedSeason');
+    //    $selectedSeason = 1  ;
         // Base query for departure flights
         $flightData = DB::table('vol_departs as vd')
             ->selectRaw('
@@ -1883,19 +1892,33 @@ class VolController extends Controller
                 'week' => $group->first()->flight_date, // Store the date of the first flight in the group
                 'count' => $group->count(), // Count the number of flights in the week
                 'flights' => $group, // Store all the flights in the group
+                'week_format' => \Carbon\Carbon::parse($group->first()->flight_date)->format('W-Y')
             ];
         });
 
-        // Find the second busiest week
-        $busiestWeek = $weeklyFlightCounts
-            ->sortByDesc('count') // Sort by the number of flights in descending order
-            ->skip(1) // Skip the first result (the busiest week)
-            ->take(1) // Limit the result to only 1 (get the second busiest week)
-            ->first(); // Get the first item, which is the second busiest week's flights
+        // Sort by the week format (W-Y)
+        $sortedWeeklyFlightCounts = $weeklyFlightCounts->sortByDesc(function ($item) {
+            return \Carbon\Carbon::parse($item['week'])->format('W-Y'); // Sort by week number and year
+        })->sortByDesc('count'); // Then sort by count
+
+        // Get the busiest week
+        // echo"<pre>";
+        // print_r($sortedWeeklyFlightCounts);
+        // echo"</pre>";
+        // die;
+        // If you want to convert it back to a collection
+
+        $busiestWeek = $sortedWeeklyFlightCounts->first(); // Get the first result, which is the busiest week
+        // Now you can get the busiest week or any other data as needed
+        // $busiestWeek = $sortedWeeklyFlightCounts->sortByDesc('count')->first(); // Get the busiest week
+
+
 
         // Get flights for the busiest week
         $finalFlights = $busiestWeek ? $busiestWeek['flights'] : collect();
+
         $finalresult = $this->removeDuplicateFlightsSomaine($finalFlights);
+
 
         // Return DataTables response
         return DataTables::of($finalresult)

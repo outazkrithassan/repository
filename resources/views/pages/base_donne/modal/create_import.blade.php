@@ -26,7 +26,7 @@
                     'id' => 'annee',
                     'class' => 'form-control form_element',
                     'name' => 'annee',
-                    'type' => 'number',
+                    'type' => 'text',
                     'required' => 'required',
                     'value' => '',
                     'placeholder' => '...',

@@ -118,7 +118,38 @@
             });
         });
     </script>
+
+
+
+
     <script>
+        // Convert PHP array to JavaScript
+        let array_saisons = @json($array);
+
+        $("#selectedSeason").on('change', function () {
+            let id_saison = $(this).val(); // Get the selected season ID
+
+            console.log('Selected Season ID:', id_saison);
+            // Clear the previous options in the date select element
+            $('#selectedDate').empty();
+
+            // Check if there are any days for the selected season
+            if (array_saisons[id_saison]) {
+                // Iterate through the formatted days for the selected season
+                array_saisons[id_saison].forEach(day => {
+                    // Append new options to the select element
+                    $('#selectedDate').append(`
+                        <option value="${day.date}">${day.dayName}, ${day.formattedDate}</option>
+                    `);
+                });
+            } else {
+                // Handle the case where no days are found for the selected season
+                $('#selectedDate').append('<option value="">No available dates</option>');
+            }
+        });
+    </script>
+
+    {{-- <script>
         let array_saisons = @json($array); // Convert PHP array to JavaScript
 
         $("#selectedSeason").on('change', function () {
@@ -137,6 +168,6 @@
                 });
 
         });
-    </script>
+    </script> --}}
 
 @endsection

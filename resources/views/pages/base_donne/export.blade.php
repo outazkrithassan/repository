@@ -1,6 +1,6 @@
 @extends('layouts.master')
 @section('title')
-    Import
+    Exportation
 @endsection
 @section('css')
     <!--datatable css-->

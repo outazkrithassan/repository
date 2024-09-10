@@ -53,7 +53,7 @@ class VolsExport implements FromCollection, WithHeadings, WithStyles, ShouldAuto
                 a.equipement,
                 a.capacite,
                 na.name AS assist,
-                CASE DAYNAME(vd.date_vol)
+                CASE DAYNAME(COALESCE(va.date_vol, vd.date_vol))
                     WHEN "Monday" THEN "Lundi"
                     WHEN "Tuesday" THEN "Mardi"
                     WHEN "Wednesday" THEN "Mercredi"
