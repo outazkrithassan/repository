@@ -10,6 +10,7 @@ class HomeControlle extends Controller
     {
 
 
+
         return view('pages.dashboard');
 
     }
@@ -18,138 +19,212 @@ class HomeControlle extends Controller
 
         $saisons = DB::table('saisons')->get();
 
-        return view('pages.dashboard', compact("saisons"));
+        $Count_all = DB::select("
+            WITH AllFlights AS (
+                SELECT date_vol, saison_id, 'arrive' AS source FROM vol_arrives
+                UNION ALL
+                SELECT date_vol, saison_id, 'depart' AS source FROM vol_departs
+            ),
+            FlightCounts AS (
+                SELECT
+                    saison_id,
+                    COUNT(*) AS total_flights,
+                    SUM(CASE WHEN source = 'arrive' THEN 1 ELSE 0 END) AS count_arrivee,
+                    SUM(CASE WHEN source = 'depart' THEN 1 ELSE 0 END) AS count_depart
+                FROM AllFlights
+                GROUP BY saison_id
+            )
+            SELECT
+                saison_id,
+                count_arrivee,
+                count_depart,
+                (count_arrivee + count_depart) AS count_all
+            FROM FlightCounts
+            ORDER BY saison_id;
+        ");
 
+        // Initialize the array
+        $array_count_all = [];
 
-    }
-    public function Count_All($saison_id)
-    {
-        // Fetch all saisons from the database
-        $saisons = DB::table('saisons')->get();
-        DB::statement("SET lc_time_names = 'fr_FR'");
-        $saisonId = 1; // Replace with your desired saison_id
-
-        $Count_all = DB::table('vol_arrives')
-        ->select(
-            DB::raw('(SELECT COUNT(*) FROM vol_arrives WHERE saison_id = ' . $saison_id . ') as count_arrivees'),
-            DB::raw('(SELECT COUNT(*) FROM vol_departs WHERE saison_id = ' . $saison_id . ') as count_departs'),
-            DB::raw('
-                (SELECT COUNT(*) FROM vol_arrives WHERE saison_id = ' . $saison_id . ') +
-                (SELECT COUNT(*) FROM vol_departs WHERE saison_id = ' . $saison_id . ') as count_all
-            ')
+        // Loop through the result and build the array
+        foreach ($Count_all as $row) {
+            $array_count_all[$row->saison_id] = [
+                'count_arrivee' => $row->count_arrivee,
+                'count_depart' => $row->count_depart,
+                'count_all' => $row->count_all
+            ];
+        }
+        $Count_mois_chargee = DB::select("WITH all_vols AS (
+            SELECT
+                saison_id,
+                MONTHNAME(date_vol) AS month,
+                COUNT(*) AS count_vols
+            FROM
+                (SELECT saison_id, date_vol FROM vol_arrives
+                 UNION ALL
+                 SELECT saison_id, date_vol FROM vol_departs) AS all_dates
+            GROUP BY saison_id, MONTHNAME(date_vol)
+        ),
+        arrive_counts AS (
+            SELECT
+                saison_id,
+                MONTHNAME(date_vol) AS month,
+                COUNT(*) AS count_arrives
+            FROM vol_arrives
+            GROUP BY saison_id, MONTHNAME(date_vol)
+        ),
+        depart_counts AS (
+            SELECT
+                saison_id,
+                MONTHNAME(date_vol) AS month,
+                COUNT(*) AS count_departs
+            FROM vol_departs
+            GROUP BY saison_id, MONTHNAME(date_vol)
         )
-        ->first();
-        $Count_mois_charge = DB::select("WITH all_vols AS (
-            SELECT
-                    MONTHNAME(date_vol) AS month,
-                    COUNT(*) AS count_vols
-                FROM
-                    (SELECT date_vol FROM vol_arrives WHERE saison_id = $saison_id
-                    UNION ALL
-                    SELECT date_vol FROM vol_departs WHERE saison_id = $saison_id) AS all_dates
-                GROUP BY MONTHNAME(date_vol)
-            ),
-            arrive_counts AS (
-                SELECT MONTHNAME(date_vol) AS month, COUNT(*) AS count_arrives
-                FROM vol_arrives
-                WHERE saison_id = $saison_id
-                GROUP BY MONTHNAME(date_vol)
-            ),
-            depart_counts AS (
-                SELECT MONTHNAME(date_vol) AS month, COUNT(*) AS count_departs
-                FROM vol_departs
-                WHERE saison_id = $saison_id
-                GROUP BY MONTHNAME(date_vol)
-            )
-            SELECT
-                all_vols.month AS month,
-                COALESCE(arrive_counts.count_arrives, 0) AS count_arrives,
-                COALESCE(depart_counts.count_departs, 0) AS count_departs,
-                all_vols.count_vols AS count_vols
+        SELECT
+            all_vols.saison_id AS saison_id,
+            all_vols.month AS month,
+            COALESCE(arrive_counts.count_arrives, 0) AS count_arrives,
+            COALESCE(depart_counts.count_departs, 0) AS count_departs,
+            all_vols.count_vols AS count_vols
+        FROM all_vols
+        LEFT JOIN arrive_counts
+            ON all_vols.saison_id = arrive_counts.saison_id
+            AND all_vols.month = arrive_counts.month
+        LEFT JOIN depart_counts
+            ON all_vols.saison_id = depart_counts.saison_id
+            AND all_vols.month = depart_counts.month
+        WHERE all_vols.count_vols = (
+            SELECT MAX(count_vols)
             FROM all_vols
-            LEFT JOIN arrive_counts ON all_vols.month = arrive_counts.month
-            LEFT JOIN depart_counts ON all_vols.month = depart_counts.month
-            WHERE all_vols.count_vols = (
-                SELECT MAX(count_vols)
-                FROM all_vols
-        );");
+            WHERE saison_id = all_vols.saison_id
+        ) ");
 
-        $Count_semaine_charge = DB::select("SELECT
-            DATE_FORMAT(va.date_vol, '%Y-%u') AS week_year,
-            CONCAT(
-                DATE_FORMAT(MIN(va.date_vol), '%d-%m'),
-                ' to ',
-                DATE_FORMAT(MAX(va.date_vol), '%d-%m-%Y')
-            ) AS week_period,
-            COUNT(DISTINCT va.id) AS count_arrivee,
-            COUNT(DISTINCT vd.id) AS count_depart,
-            COUNT(DISTINCT va.id) + COUNT(DISTINCT vd.id) AS count_all
-            FROM vol_arrives va
-            LEFT JOIN vol_departs vd ON va.date_vol = vd.date_vol AND vd.saison_id = $saison_id
-            WHERE va.saison_id = $saison_id
-            GROUP BY DATE_FORMAT(va.date_vol, '%Y-%u')
-            ORDER BY count_all DESC, week_year DESC
-            LIMIT 2;"
-        );
-        $Count_somaine_charts = [
-            'arrivees' => 0,
-            'departs' => 0,
-            'total' => 0
-        ];
-        $Count_somaine_charts = DB::select("SELECT
-                DATE_FORMAT(va.date_vol, '%Y-%u') AS week_year,
-                COUNT(DISTINCT va.id) AS count_arrivee,
-                COUNT(DISTINCT vd.id) AS count_depart,
-                COUNT(DISTINCT va.id) + COUNT(DISTINCT vd.id) AS count_all
-            FROM vol_arrives va
-            LEFT JOIN vol_departs vd ON va.date_vol = vd.date_vol AND vd.saison_id = $saison_id
-            WHERE va.saison_id = $saison_id
-            GROUP BY DATE_FORMAT(va.date_vol, '%Y-%u')
-            ORDER BY week_year DESC;"
-        );
+        // Initialize the array
+        $array_count_mois = [];
 
-        // dd($Count_somaine_charts);
-        $count_jours_charge = DB::select("WITH BusiestDays AS (
-                SELECT va.date_vol, COUNT(*) AS flight_count
-                FROM vol_arrives va
-                WHERE va.saison_id = $saison_id
-                GROUP BY va.date_vol
-                ORDER BY flight_count DESC
+        // Loop through the result and build the array
+        foreach ($Count_mois_chargee as $row) {
+            $array_count_mois[$row->saison_id] = [
+                'month'=>$row->month,
+                'count_arrivee' => $row->count_arrives,
+                'count_depart' => $row->count_departs,
+                'count_all' => $row->count_vols
+            ];
+        }
+
+        $Count_semaine_chargee = DB::select("SELECT
+                week_year,
+                saison_id,
+                periode_start,
+                periode_end,
+                total_flights,
+                arrivee_count,
+                depart_count
+            FROM (
+                SELECT
+                    DATE_FORMAT(date_vol, '%Y-%u') AS week_year,
+                    saison_id,
+                    COUNT(CASE WHEN source = 'arrive' THEN 1 END) AS arrivee_count,
+                    COUNT(CASE WHEN source = 'depart' THEN 1 END) AS depart_count,
+                    COUNT(*) AS total_flights,
+                    MIN(date_vol) AS periode_start,
+                    MAX(date_vol) AS periode_end
+                FROM (
+                    SELECT date_vol, saison_id, 'arrive' AS source FROM vol_arrives
+                    UNION ALL
+                    SELECT date_vol, saison_id, 'depart' AS source FROM vol_departs
+                ) AS all_flights
+                GROUP BY week_year, saison_id
+            ) AS FlightData
+            WHERE (saison_id, total_flights) IN (
+                SELECT saison_id, total_flights
+                FROM (
+                    SELECT
+                        saison_id,
+                        week_year,
+                        total_flights,
+                        RANK() OVER (PARTITION BY saison_id ORDER BY total_flights DESC) AS rank
+                    FROM (
+                        SELECT
+                            DATE_FORMAT(date_vol, '%Y-%u') AS week_year,
+                            saison_id,
+                            COUNT(*) AS total_flights
+                        FROM (
+                            SELECT date_vol, saison_id, 'arrive' AS source FROM vol_arrives
+                            UNION ALL
+                            SELECT date_vol, saison_id, 'depart' AS source FROM vol_departs
+                        ) AS all_flights
+                        GROUP BY week_year, saison_id
+                    ) AS subquery
+                ) AS ranked_weeks
+                WHERE rank <= 2
             )
-            SELECT
-            DATE_FORMAT(bd.date_vol, '%W, %d/%m/%Y') AS date_vol,
-                COUNT(DISTINCT va.id) AS count_arrivee,
-                COUNT(DISTINCT vd.id) AS count_depart,
-                COUNT(DISTINCT va.id) + COUNT(DISTINCT vd.id) AS count_all
-            FROM BusiestDays bd
-            LEFT JOIN vol_arrives va ON bd.date_vol = va.date_vol AND va.saison_id = $saison_id
-            LEFT JOIN vol_departs vd ON bd.date_vol = vd.date_vol AND vd.saison_id = $saison_id
-            GROUP BY bd.date_vol
-            ORDER BY count_all DESC, bd.date_vol DESC
-            LIMIT 3;"
+            ORDER BY  week_year DESC ;"
         );
 
-        if (!$Count_all) {
-            return response()->json(['error' => 'No data found Count_all'], 404);
+                // Initialize the array
+        $array_count_semaine = [];
+
+        // Loop through the result and build the array
+        foreach ($Count_semaine_chargee as $row) {
+            $array_count_semaine[$row->saison_id] = [
+                'week_year'=>$row->week_year,
+                'periode' => $row->periode_start . ' - ' . $row->periode_end,
+                'arrivee_count' => $row->arrivee_count,
+                'depart_count' => $row->depart_count,
+                'total_flights' => $row->total_flights
+            ];
         }
-        if (!$Count_mois_charge) {
-            return response()->json(['error' => 'No data found Count_mois_charge'], 404);
-        }
-        if (!$Count_semaine_charge) {
-            return response()->json(['error' => 'No data found Count_semaine_charge'], 404);
-        }
-        if (!$count_jours_charge) {
-            return response()->json(['error' => 'No data found count_jours_charge'], 404);
+        $Count_jeurs_chargee = DB::select("WITH RankedDays AS (
+            SELECT
+                date_vol,
+                saison_id,
+                COUNT(*) AS flight_count,
+                ROW_NUMBER() OVER (PARTITION BY saison_id ORDER BY COUNT(*) DESC) AS row_num
+            FROM (
+                SELECT date_vol, saison_id FROM vol_arrives
+                UNION ALL
+                SELECT date_vol, saison_id FROM vol_departs
+            ) AS all_flights
+            GROUP BY date_vol, saison_id
+        )
+        SELECT
+            DATE_FORMAT(rd.date_vol, '%W, %d/%m/%Y') AS date_vol,
+            rd.saison_id,
+            SUM(CASE WHEN source = 'arrive' THEN 1 ELSE 0 END) AS count_arrivee,
+            SUM(CASE WHEN source = 'depart' THEN 1 ELSE 0 END) AS count_depart,
+            COUNT(*) AS count_all
+        FROM RankedDays rd
+        LEFT JOIN (
+            SELECT date_vol, saison_id, 'arrive' AS source FROM vol_arrives
+            UNION ALL
+            SELECT date_vol, saison_id, 'depart' AS source FROM vol_departs
+        ) AS all_flights ON rd.date_vol = all_flights.date_vol AND rd.saison_id = all_flights.saison_id
+        WHERE rd.row_num <= 3  -- Limit to top 3 days for each saison_id
+        GROUP BY rd.date_vol, rd.saison_id
+        ORDER BY rd.saison_id, rd.date_vol DESC;
+        ");
+
+        // Initialize the array
+        $array_count_jeurs = [];
+
+        // Loop through the result and build the array
+        foreach ($Count_jeurs_chargee as $row) {
+            $array_count_jeurs[$row->saison_id] = [
+                'date_vol'=>$row->date_vol,
+                'count_arrivee' => $row->count_arrivee,
+                'count_depart' => $row->count_depart,
+                'count_all' => $row->count_all
+            ];
         }
 
-        return response()->json([
-            'Count_all' => $Count_all,
-            'Count_mois_charge' => $Count_mois_charge,
-            'Count_semaine_charge' => $Count_semaine_charge,
-            'count_jours_charge' => $count_jours_charge,
-            'Count_somaine_charts' => $Count_somaine_charts
-        ]);
-        return view('pages.dashboard', compact("saisons"));
+
+
+
+        return view('pages.dashboard', compact('saisons','array_count_all','array_count_mois','array_count_semaine','array_count_jeurs'));
+
 
     }
+
 }

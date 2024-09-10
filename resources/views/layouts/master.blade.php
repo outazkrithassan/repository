@@ -6,9 +6,9 @@
     <meta charset="utf-8" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>
-        &lt;Oukim&gt;
+
         @yield('title')
-        &lt;/Oukim&gt;
+
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Premium Multipurpose & Dashboard Template" name="description" />

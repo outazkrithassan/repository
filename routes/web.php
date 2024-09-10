@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', [HomeControlle::class, 'dashbord'])->name('page.dashbord');
     Route::get('/', [HomeControlle::class, 'Get_saison'])->name('page.dashbord');
-    Route::get('/Count/{saison_id}', [HomeControlle::class, 'Count_All'])->name('page.dashbord');
+    // Route::get('/Count', [HomeControlle::class, 'Count_All'])->name('page.dashbord');
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 

@@ -1,6 +1,6 @@
 @extends('layouts.master-without-nav')
 @section('title')
-    @lang('translation.signin')
+
 @endsection
 @section('content')
     <!-- auth-page wrapper -->
